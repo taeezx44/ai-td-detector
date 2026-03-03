@@ -137,13 +137,23 @@ class RealRepositoryAnalyzer:
             response = requests.get(api_url, timeout=10)
             
             if response.status_code == 404:
-                # Repository not found or private
+                print(f"Repository not found: {repo_info['owner']}/{repo_info['repo']}")
+                return None
+            
+            if response.status_code == 403:
+                print(f"Repository access forbidden (rate limit or private): {repo_info['owner']}/{repo_info['repo']}")
                 return None
             
             if response.status_code != 200:
+                print(f"GitHub API error {response.status_code}: {response.text}")
                 return None
             
             repo_data = response.json()
+            
+            # Check if repository is empty
+            if repo_data.get('size', 0) == 0:
+                print(f"Repository is empty: {repo_info['owner']}/{repo_info['repo']}")
+                return None
             
             # Get default branch if not specified
             if not repo_info.get('branch') or repo_info['branch'] == 'main':
@@ -151,9 +161,11 @@ class RealRepositoryAnalyzer:
             
             # Download repository as ZIP
             zip_url = f"https://github.com/{repo_info['owner']}/{repo_info['repo']}/archive/{repo_info['branch']}.zip"
+            print(f"Downloading: {zip_url}")
             zip_response = requests.get(zip_url, timeout=30)
             
             if zip_response.status_code != 200:
+                print(f"Failed to download ZIP: {zip_response.status_code}")
                 return None
             
             # Save and extract ZIP
@@ -173,6 +185,11 @@ class RealRepositoryAnalyzer:
                     extracted_dir = item_path
                     break
             
+            if not extracted_dir:
+                print("No extracted directory found")
+                return None
+            
+            print(f"Repository extracted to: {extracted_dir}")
             return extracted_dir
             
         except Exception as e:
@@ -186,11 +203,22 @@ class RealRepositoryAnalyzer:
             # Find code files
             code_files = self._find_code_files(repo_path)
             
+            print(f"Found {len(code_files)} code files")
+            
             if not code_files:
                 return {
                     'analysis_success': False,
-                    'error': 'No supported code files found'
+                    'error': 'No supported code files found. Repository may contain only documentation, configuration files, or unsupported languages.'
                 }
+            
+            # Show supported languages found
+            languages_found = set()
+            for file_path in code_files:
+                lang = self._detect_language(file_path)
+                if lang:
+                    languages_found.add(lang)
+            
+            print(f"Supported languages found: {', '.join(sorted(languages_found))}")
             
             # Analyze each file
             total_lines = 0
@@ -211,6 +239,7 @@ class RealRepositoryAnalyzer:
                     # Parse file
                     language = self._detect_language(file_path)
                     if not language:
+                        print(f"Warning: Could not detect language for {file_path}")
                         continue
                     
                     # Analyze with AI-TD detector
@@ -220,6 +249,8 @@ class RealRepositoryAnalyzer:
                         all_scores.append(analysis)
                         total_lines += len(content.splitlines())
                         files_analyzed += 1
+                    else:
+                        print(f"Warning: Analysis failed for {file_path}")
                 
                 except Exception as e:
                     print(f"Error analyzing file {file_path}: {e}")
@@ -228,8 +259,10 @@ class RealRepositoryAnalyzer:
             if not all_scores:
                 return {
                     'analysis_success': False,
-                    'error': 'Failed to analyze any files'
+                    'error': f'Failed to analyze any files. Tried {files_analyzed} files, but none produced valid results. This may be due to parsing errors or unsupported code patterns.'
                 }
+            
+            print(f"Successfully analyzed {files_analyzed} files with {total_lines} total lines")
             
             # Aggregate results
             aggregated_scores = self._aggregate_scores(all_scores)
@@ -252,7 +285,7 @@ class RealRepositoryAnalyzer:
         except Exception as e:
             return {
                 'analysis_success': False,
-                'error': f'Analysis error: {str(e)}'
+                'error': f'Analysis error: {str(e)}. This may be due to repository structure, file encoding issues, or internal analysis failures.'
             }
     
     def _find_code_files(self, repo_path: str) -> List[str]:

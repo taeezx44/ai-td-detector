@@ -338,7 +338,8 @@ def analyze_repository():
 
         analysis = repo_analyzer.analyze_repo_url(repo_url)
         if not analysis or not analysis.get('analysis_success'):
-            return jsonify({'error': 'Analysis failed. Ensure the repository is accessible and contains supported languages.'}), 400
+            error_msg = analysis.get('error', 'Unknown error occurred during analysis')
+            return jsonify({'error': f'Analysis failed: {error_msg}'}), 400
 
         result = {
             'repo_name': analysis.get('name', repo_name),
