@@ -51,7 +51,15 @@ class RealRepositoryAnalyzer:
         }
     
     def analyze_repo_url(self, repo_url: str) -> Dict:
-        """Analyze a GitHub repository by URL."""
+        """Analyze a GitHub repository by URL.
+
+        This method is designed to be robust in constrained environments (e.g. Render):
+        - It always creates a temporary working directory.
+        - It first attempts a ZIP download, then git clone.
+        - If code analysis is impossible, it falls back to a lightweight GitHub API–based estimate.
+        """
+        start_time = time.time()
+
         try:
             # Parse repository URL
             repo_info = self._parse_repo_url(repo_url)
@@ -60,24 +68,33 @@ class RealRepositoryAnalyzer:
                     'analysis_success': False,
                     'error': f'Invalid GitHub URL format: {repo_url}. Expected format: https://github.com/owner/repo'
                 }
-            
+
+            # Ensure we have a temporary directory for any downloads
+            if not self.temp_dir:
+                self.temp_dir = tempfile.mkdtemp(prefix='ai_td_analysis_')
+
             # Try ZIP download first (faster)
             if self._try_zip_download(repo_info):
                 extracted_dir = self._find_extracted_directory()
                 if extracted_dir:
-                    return self._analyze_repository_path(extracted_dir, repo_info)
-            
+                    result = self._analyze_repository_path(extracted_dir, repo_info)
+                    result.setdefault('analysis_time', time.time() - start_time)
+                    return result
+
             # Fallback to git clone
             if self._try_git_clone(repo_info):
                 extracted_dir = self._find_extracted_directory()
                 if extracted_dir:
-                    return self._analyze_repository_path(extracted_dir, repo_info)
-            
+                    result = self._analyze_repository_path(extracted_dir, repo_info)
+                    result.setdefault('analysis_time', time.time() - start_time)
+                    return result
+
             # Final fallback to GitHub API (no code analysis, but provides basic info)
             if self._try_github_api_fallback(repo_info):
                 if hasattr(self, 'minimal_result') and self.minimal_result:
+                    self.minimal_result.setdefault('analysis_time', time.time() - start_time)
                     return self.minimal_result
-            
+
             # Special fallback for ai-td-detector repository
             if repo_info['owner'] == 'taeezx44' and repo_info['repo'] == 'ai-td-detector':
                 print("Using hardcoded fallback for ai-td-detector repository")
@@ -96,9 +113,10 @@ class RealRepositoryAnalyzer:
                     'files_analyzed': 0,
                     'total_lines': 0,
                     'severity': 'MEDIUM',
-                    'analysis_method': 'hardcoded_fallback'
+                    'analysis_method': 'hardcoded_fallback',
+                    'analysis_time': time.time() - start_time,
                 }
-            
+
             # Special fallback for SmartFileOrganizer repository
             if repo_info['owner'] == 'taeezx44' and repo_info['repo'] == 'SmartFileOrganizer':
                 print("Using hardcoded fallback for SmartFileOrganizer repository")
@@ -117,21 +135,23 @@ class RealRepositoryAnalyzer:
                     'files_analyzed': 0,
                     'total_lines': 0,
                     'severity': 'MEDIUM',
-                    'analysis_method': 'hardcoded_fallback'
+                    'analysis_method': 'hardcoded_fallback',
+                    'analysis_time': time.time() - start_time,
                 }
-            
+
             # All methods failed
             return {
                 'analysis_success': False,
                 'error': f'Failed to analyze repository {repo_info["owner"]}/{repo_info["repo"]}. All analysis methods failed. This could be due to: 1) Repository not found or private, 2) Network connectivity issues, 3) GitHub API rate limits, 4) Server restrictions on cloning. Please try again later or check if the repository is accessible.'
             }
-            
+
         except Exception as e:
-            self._cleanup_temp_dir()
             return {
                 'analysis_success': False,
-                'error': f'Failed to clone repository: {str(e)}. This could be due to: 1) Repository not found or private, 2) Network connectivity issues, 3) GitHub rate limits, 4) Invalid repository URL format. Please check the repository URL and try again.'
+                'error': f'Failed to analyze repository: {str(e)}. This could be due to: 1) Repository not found or private, 2) Network connectivity issues, 3) GitHub rate limits, 4) Invalid repository URL format. Please check the repository URL and try again.'
             }
+        finally:
+            self._cleanup_temp_dir()
     
     def _parse_repo_url(self, repo_url: str) -> Optional[Dict]:
         """Parse GitHub repository URL."""
@@ -168,51 +188,56 @@ class RealRepositoryAnalyzer:
             return None
     
     def _clone_repository(self, repo_info: Dict) -> Optional[str]:
-        """Clone repository to temporary directory."""
+        """Clone repository to temporary directory.
+
+        NOTE: This helper is kept for backward compatibility but `analyze_repo_url`
+        now orchestrates ZIP/clone directly after creating `temp_dir`.
+        """
         try:
-            # Create temporary directory
-            self.temp_dir = tempfile.mkdtemp(prefix='ai_td_analysis_')
-            
+            # Ensure temporary directory exists
+            if not self.temp_dir:
+                self.temp_dir = tempfile.mkdtemp(prefix='ai_td_analysis_')
+
             # Use GitHub API to get repository info
             api_url = f"https://api.github.com/repos/{repo_info['owner']}/{repo_info['repo']}"
-            
+
             # Try without authentication first (public repos)
             response = requests.get(api_url, timeout=10)
-            
+
             if response.status_code == 404:
                 print(f"Repository not found: {repo_info['owner']}/{repo_info['repo']}")
                 return None
-            
+
             if response.status_code == 403:
                 print(f"Repository access forbidden (rate limit or private): {repo_info['owner']}/{repo_info['repo']}")
                 return None
-            
+
             if response.status_code != 200:
                 print(f"GitHub API error {response.status_code}: {response.text}")
                 return None
-            
+
             repo_data = response.json()
-            
+
             # Check if repository is empty
             if repo_data.get('size', 0) == 0:
                 print(f"Repository is empty: {repo_info['owner']}/{repo_info['repo']}")
                 return None
-            
+
             # Get default branch if not specified
             if not repo_info.get('branch') or repo_info['branch'] == 'main':
                 repo_info['branch'] = repo_data.get('default_branch', 'main')
-            
+
             # Try ZIP download first (faster)
             if self._try_zip_download(repo_info):
                 return self._find_extracted_directory()
-            
+
             # Fallback to git clone
             if self._try_git_clone(repo_info):
                 return self._find_extracted_directory()
-            
+
             print("Both ZIP download and git clone failed")
             return None
-            
+
         except Exception as e:
             print(f"Error cloning repository: {e}")
             self._cleanup_temp_dir()
