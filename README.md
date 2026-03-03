@@ -1,5 +1,3 @@
-<div align="center">
-
 # 🔍 AI-TD Detector
 
 ### ระบบตรวจจับและวัดระดับหนี้ทางเทคนิคที่เกิดจากการสร้างโค้ดด้วย AI อัตโนมัติ
@@ -8,10 +6,8 @@
 
 [![Python](https://img.shields.io/badge/Python-3.11+-3776AB?logo=python&logoColor=white)](https://python.org)
 [![Tree-sitter](https://img.shields.io/badge/Tree--sitter-0.21-green)](https://tree-sitter.github.io)
-[![Tests](https://img.shields.io/badge/Tests-36%20passed-brightgreen)](engine/tests/)
-[![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-
-</div>
+[![Tests](https://img.shields.io/badge/Tests-36%20passed-brightgreen)](/engine/tests)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](/LICENSE)
 
 ---
 
@@ -40,7 +36,7 @@
 ### ปัญหาที่แก้
 
 | ปัญหา | สิ่งที่ AI-TD Detector ทำ |
-|--------|---------------------------|
+|---|---|
 | เครื่องมืออย่าง SonarQube ไม่แยกแยะโค้ด AI vs Human | วิเคราะห์เฉพาะ patterns ที่พบบ่อยใน LLM output |
 | ไม่มี composite metric สำหรับ AI-specific debt | เสนอ **AI-TD Score** 4 มิติ พร้อม weight justification |
 | ทีมพัฒนาไม่รู้ว่าสะสม AI debt อยู่ระดับใด | แจ้งเตือน LOW / MEDIUM / HIGH ทันที |
@@ -56,6 +52,8 @@
 - 🧪 **36 Unit Tests** — ครอบคลุมทุก analyzer + scoring engine
 - 🐙 **GitHub API Integration** — ดึง commit history + ตรวจจับ AI commit markers อัตโนมัติ
 - 📁 **CLI Interface** — ใช้งานง่ายผ่าน command line
+- 🖥️ **VS Code Extension** — Real-time annotations และ inline severity labels
+- 🌐 **Web Dashboard** — Interactive Flask dashboard พร้อม Plotly visualizations
 
 ---
 
@@ -66,7 +64,7 @@ AI-TD Score = 0.30·C + 0.25·D + 0.20·Doc + 0.25·(1−E)
 ```
 
 | Dimension | Weight | Metric | Reference |
-|-----------|--------|--------|-----------|
+|---|---|---|---|
 | **Complexity (C)** | 30% | Cyclomatic + Cognitive Complexity | McCabe (1976), Herbold et al. (2022) |
 | **Duplication (D)** | 25% | Code clone ratio (hash-based) | Roy & Cordy (2007) |
 | **Documentation (Doc)** | 20% | Docstring/comment coverage | Aghajani et al. (2020) |
@@ -77,7 +75,7 @@ AI-TD Score = 0.30·C + 0.25·D + 0.20·Doc + 0.25·(1−E)
 ### Severity Thresholds
 
 | Score Range | Severity | Meaning |
-|-------------|----------|---------|
+|---|---|---|
 | 0.00 – 0.30 | 🟢 **LOW** | Technical debt อยู่ในระดับยอมรับได้ |
 | 0.30 – 0.60 | 🟡 **MEDIUM** | ควรทบทวนและปรับปรุงโค้ด |
 | 0.60 – 1.00 | 🔴 **HIGH** | มี technical debt สูง ต้องแก้ไขเร่งด่วน |
@@ -113,27 +111,26 @@ ai-td-detector/
 ├── samples/
 │   ├── ai_generated_example.py         # Simulated AI-generated code
 │   └── human_written_example.py        # Well-written human code
-├── vscode-extension/                    # ✅ VS Code Extension (Ready to install)
-│   ├── package.json                     # Extension manifest + commands
-│   ├── src/                            # TypeScript source files
-│   │   ├── extension.ts                 # Main entry point
-│   │   ├── engineRunner.ts              # Python bridge
-│   │   ├── decorationManager.ts         # Inline annotations
-│   │   ├── panelProvider.ts             # Dashboard webview
-│   │   └── statusBarItem.ts             # Status bar integration
-│   ├── python-bridge/bridge.py          # Python subprocess bridge
+├── vscode-extension/                    # ✅ VS Code Extension (v1.0.0)
+│   ├── package.json
+│   ├── src/
+│   │   ├── extension.ts
+│   │   ├── engineRunner.ts
+│   │   ├── decorationManager.ts
+│   │   ├── panelProvider.ts
+│   │   └── statusBarItem.ts
+│   ├── python-bridge/bridge.py
 │   ├── ai-td-detector-1.0.0.vsix        # Installable package (34KB)
-│   └── README.md                        # Extension usage guide
+│   └── README.md
 ├── web-dashboard/                       # ✅ Web Dashboard (Flask + Plotly)
-│   ├── app.py                          # Flask backend with API endpoints
-│   ├── templates/index.html             # Interactive frontend
-│   └── requirements.txt                 # Python dependencies
-├── scripts/                            # Data collection & analysis scripts
-│   ├── data_collector.py                # GitHub API data collection
-│   ├── human_collector.py               # Human repo collector (control group)
-│   ├── real_repo_analyzer.py            # Real-time repo analysis
-│   └── statistical_analysis.py          # Dataset analysis
-└── test_extension.*                    # Test files for extension (py/js/ts)
+│   ├── app.py
+│   ├── templates/index.html
+│   └── requirements.txt
+├── scripts/
+│   ├── data_collector.py
+│   ├── human_collector.py
+│   ├── real_repo_analyzer.py
+│   └── statistical_analysis.py
 └── data/                               # Dataset & analysis results
 ```
 
@@ -157,17 +154,19 @@ pip install -r engine/requirements.txt
 ### 🎯 VS Code Extension (Recommended)
 
 **Install Extension:**
+
 ```bash
-# Download and install the .vsix package
 code --install-extension vscode-extension/ai-td-detector-1.0.0.vsix
 ```
 
 **Configure Extension:**
+
 1. Open VS Code → Settings → Extensions → AI-TD Detector
 2. Set `aitd.enginePath` to project root (folder containing `engine/`)
 3. Set `aitd.pythonPath` to your Python interpreter
 
 **Use Extension:**
+
 - **Analyze Current File**: `Ctrl+Shift+P → "AI-TD: Analyze Current File"`
 - **Analyze Workspace**: `Ctrl+Shift+P → "AI-TD: Analyze Entire Workspace"`
 - **Show Dashboard**: `Ctrl+Shift+P → "AI-TD: Show Dashboard"`
@@ -175,7 +174,6 @@ code --install-extension vscode-extension/ai-td-detector-1.0.0.vsix
 
 ### 🌐 Web Dashboard
 
-**Start Dashboard:**
 ```bash
 cd web-dashboard
 pip install -r requirements.txt
@@ -192,21 +190,14 @@ python app.py
 
 ### 🧪 Command Line Interface
 
-**Analyze a Single File:**
-
 ```bash
+# Analyze a single file
 python engine/main.py --file samples/ai_generated_example.py
-```
 
-**Analyze Directory:**
-
-```bash
+# Analyze a directory
 python engine/main.py --directory path/to/your/project
-```
 
-**Analyze GitHub Repository:**
-
-```bash
+# Analyze a GitHub repository
 python scripts/real_repo_analyzer.py --repo https://github.com/user/repo
 ```
 
@@ -214,11 +205,7 @@ python scripts/real_repo_analyzer.py --repo https://github.com/user/repo
 
 ```bash
 python -m pytest engine/tests/ -v
-```
-
-Expected:
-```
-36 passed in 0.07s
+# Expected: 36 passed in 0.07s
 ```
 
 ---
@@ -232,6 +219,7 @@ python engine/main.py --file samples/ai_generated_example.py
 ```
 
 Output:
+
 ```
 ═══ AI-TD Score Report ═══
 Language:    python
@@ -280,18 +268,10 @@ test_extension.py  🟡 AI-TD: 0.45 [MEDIUM]
 ⚠️ no error handling  (processTypeA)
 ```
 
-### Web Dashboard Demo
-
-**Features:**
-- 📈 **Real-time Gauge**: Overall AI-TD score visualization
-- 📊 **Dimension Bars**: Complexity, Duplication, Documentation, Error Handling
-- 🔍 **Repository Table**: Sortable, filterable results
-- 📥 **Export**: Download analysis results as CSV
-
 ### Command Line Demo
 
 | Dimension | AI Code | Human Code | Delta |
-|-----------|---------|------------|-------|
+|---|---|---|---|
 | **AI-TD Score** | **0.6714 🔴 HIGH** | **0.1500 🟢 LOW** | **+0.5214** |
 | Complexity (C) | 0.0000 | 0.0000 | +0.0000 |
 | Duplication (D) | 1.0000 | 0.0000 | +1.0000 |
@@ -309,14 +289,14 @@ test_extension.py  🟡 AI-TD: 0.45 [MEDIUM]
 ## 🛠 Tech Stack
 
 | Component | Technology | Purpose |
-|-----------|-----------|---------|
+|---|---|---|
 | **AST Parser** | Tree-sitter 0.21 | Multi-language parsing |
 | **Engine** | Python 3.11 | Core analysis + scoring |
 | **Clone Detection** | MD5 hash-based | Sliding window duplication |
 | **GitHub** | REST API v3 | Commit + AI marker detection |
 | **Testing** | pytest 9.0 | 36 unit tests |
-| **VS Code Extension** | TypeScript 5 *(planned)* | Real-time annotations |
-| **Dashboard** | React 18 + PostgreSQL *(planned)* | Trend visualization |
+| **VS Code Extension** | TypeScript 5 | Real-time annotations |
+| **Dashboard** | Flask + Plotly | Interactive trend visualization |
 
 ---
 
@@ -346,6 +326,39 @@ test_extension.py  🟡 AI-TD: 0.45 [MEDIUM]
 
 ---
 
+## 📊 Current Status & Achievements (March 2026)
+
+### ✅ Completed
+
+- **Detection Engine**: Tree-sitter AST parser + 4 technical debt analyzers
+- **AI-TD Score**: Composite metric with Bayesian weight justification
+- **Unit Tests**: 36 tests passing (core functionality verified)
+- **CLI Tool**: Working command-line interface with AI-TD scoring
+- **VS Code Extension**: Real-time annotations and analysis (v1.0.0 released)
+- **Web Dashboard**: Interactive Flask dashboard with Plotly visualizations
+- **Dataset**: 40+ repositories (AI-assisted vs human-written control group)
+- **Statistical Analysis**: Wilcoxon Signed-Rank Test + Effect size calculation
+- **Research Workflow**: Complete 7-phase automation pipeline
+- **GitHub Repository**: Full source code published and installable
+
+### 📈 Preliminary Findings
+
+- **RQ1**: AI-generated code shows higher technical debt (AI: 0.51 vs Human: 0.35)
+- **RQ2**: Documentation (0.40 vs 0.22) and Error Handling (0.46 vs 0.19) are most distinguishing
+- **Statistical Significance**: P-value = 0.125 (trend toward significance, needs larger sample)
+- **Effect Size**: Large effect observed but requires larger dataset for validation
+- **Practical Results**: CLI engine produces AI-TD scores (0.6714 [HIGH] for AI-generated code)
+
+### 🚀 Ready For
+
+- **Academic Review**: Complete research artifacts with statistical analysis
+- **Industrial Application**: Production-ready CLI tool and VS Code extension
+- **Real-world Testing**: Web dashboard for repository analysis
+- **Dataset Expansion**: Automated collection pipeline for larger studies
+- **Conference Submission**: Research ready for TSEC/ECTI-CON submission
+
+---
+
 ## 🗺 Roadmap
 
 - [x] Detection Engine v1.0 (Tree-sitter + 4 Analyzers)
@@ -365,40 +378,6 @@ test_extension.py  🟡 AI-TD: 0.45 [MEDIUM]
 
 ---
 
-## 📊 Current Status & Achievements
-
-### ✅ Completed (March 2026)
-- **Detection Engine**: Tree-sitter AST parser + 4 technical debt analyzers
-- **AI-TD Score**: Composite metric with Bayesian weight justification  
-- **Unit Tests**: 36+ tests passing (core functionality verified)
-- **CLI Tool**: Working command-line interface with AI-TD scoring
-- **VS Code Extension**: Real-time annotations and analysis (1.0.0 released)
-- **Web Dashboard**: Interactive Flask dashboard with Plotly visualizations
-- **Dataset**: 40+ repositories (AI-assisted vs human-written control group)
-- **Statistical Analysis**: Wilcoxon Signed-Rank Test + Effect size calculation
-- **Demo Results**: AI code shows measurable technical debt differences
-- **Research Workflow**: Complete 7-phase automation pipeline
-- **GitHub Repository**: Full source code published and installable
-- **Web Dashboard**: Interactive Flask dashboard with Plotly visualizations
-- **Dataset**: 40+ repositories (AI-assisted vs human-written control group)
-- **Statistical Analysis**: Wilcoxon Signed-Rank Test + Effect size calculation
-- **Demo Results**: AI code shows measurable technical debt differences
-- **Research Workflow**: Complete 7-phase automation pipeline
-- **GitHub Repository**: Full source code published and installableated code shows higher technical debt (AI: 0.51 vs Human: 0.35)
-- **RQ2**: Documentation (0.40 vs 0.22) and Error Handling (0.46 vs 0.19) are most distinguishing
-- **Statistical Significance**: P-value = 0.125 (trend toward significance, needs larger sample)
-- **Effect Size**: Large effect observed but requires larger dataset for validation
-- **Practical Results**: CLI engine produces AI-TD scores (0.6714 [HIGH] for AI-generated code)
-
-### 🚀 Ready For
-- **Academic Review**: Complete research artifacts with statistical analysis
-- **Industrial Application**: Production-ready CLI tool and VS Code extension
-- **Real-world Testing**: Web dashboard for repository analysis
-- **Dataset Expansion**: Automated collection pipeline for larger studies
-- **Conference Submission**: Research ready for TSEC/ECTI-CON submission
-
----
-
 ## 🤝 Contributing
 
 Contributions are welcome! This is an open-source research project.
@@ -413,7 +392,7 @@ Contributions are welcome! This is an open-source research project.
 
 ## 📄 License
 
-MIT License — see [LICENSE](LICENSE) for details.
+MIT License — see [LICENSE](/LICENSE) for details.
 
 ---
 
@@ -429,10 +408,6 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ---
 
-<div align="center">
-
 **Built with ❤️ at Buriram Rajabhat University**
 
 *Department of Computer Science • Faculty of Science and Technology*
-
-</div>
