@@ -20,6 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
+*.pyc
 
 # Virtual environments
 venv/
@@ -37,41 +38,39 @@ ENV/
 
 # OS
 .DS_Store
-.DS_Store?
+Thumbs.db
 ._*
 .Spotlight-V100
 .Trashes
 ehthumbs.db
-Thumbs.db
 
-# Data files (keep structure, ignore large datasets)
-data/*.csv
-data/*.json
-!data/.gitkeep
-!data/sample_research_dataset.csv
-!data/merged_dataset.csv
-!data/statistical_results.json
+# Binary files
+*.zip
+*.vsix
 
-# Logs
-*.log
-logs/
-
-# Node.js (for VS Code extension)
+# Node.js
 node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# VS Code extension build
-vscode-extension/dist/
-vscode-extension/out/
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
-# Temporary files
-*.tmp
-*.temp
-.cache/
+# Logs
+*.log
+logs/
 
-# Test coverage
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Coverage reports
 htmlcov/
 .coverage
 .coverage.*
@@ -83,9 +82,27 @@ coverage.xml
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# Environment variables
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+# pyenv
+.python-version
+
+# Temporary files
+*.tmp
+*.temp
+temp/
+tmp/
+.cache/
+
+# VS Code extension build
+vscode-extension/dist/
+vscode-extension/out/
+
+# AI-TD Detector specific
+statistical_results.json
+data/*.csv
+data/*.json
+scripts/data/*.csv
+!data/RESEARCH_REPORT.md
+!data/sample_research_dataset.csv
+!data/merged_dataset.csv
+!data/statistical_results.json
+!data/.gitkeep
