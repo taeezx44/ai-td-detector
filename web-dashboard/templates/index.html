@@ -358,68 +358,106 @@
         }
 
         // Analyze repository
+        function severityColor(sev) {
+            if (sev === 'HIGH')   return '#ef4444';
+            if (sev === 'MEDIUM') return '#f59e0b';
+            return '#22c55e';
+        }
+
+        function scoreBar(label, value) {
+            const pct   = Math.round(value * 100);
+            const color = value >= 0.6 ? '#ef4444' : value >= 0.3 ? '#f59e0b' : '#22c55e';
+            return `
+                <div class="mb-2">
+                    <div class="flex justify-between text-xs text-gray-500 mb-1">
+                        <span>${label}</span><span>${value.toFixed(3)}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div style="width:${pct}%;background:${color}" class="h-2 rounded-full transition-all"></div>
+                    </div>
+                </div>`;
+        }
+
         async function analyzeRepository() {
             const repoUrl = document.getElementById('repo-url').value.trim();
             if (!repoUrl) {
-                alert('Please enter a repository URL');
+                alert('Please enter a GitHub repository URL');
                 return;
             }
-            
-            const button = event.target;
+            if (!repoUrl.includes('github.com')) {
+                alert('Please enter a valid GitHub URL (e.g. https://github.com/owner/repo)');
+                return;
+            }
+
+            const button = document.querySelector('button[onclick="analyzeRepository()"]');
+            const resultDiv = document.getElementById('analysis-result');
             button.disabled = true;
             button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...';
-            
+
+            // Show progress indicator
+            resultDiv.classList.remove('hidden');
+            resultDiv.innerHTML = `
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 text-sm text-blue-700">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                    Fetching repository via GitHub API and running AI-TD analysis...
+                    <div class="text-xs text-blue-500 mt-1">This usually takes 10–30 seconds depending on repo size.</div>
+                </div>`;
+
             try {
                 const response = await fetch('/api/analyze', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ repo_url: repoUrl })
                 });
-                
+
                 const result = await response.json();
-                
+
                 if (result.error) {
-                    alert(result.error);
+                    resultDiv.innerHTML = `
+                        <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            <strong>Analysis failed:</strong> ${result.error}
+                        </div>`;
                     return;
                 }
-                
-                // Display results
-                const resultDiv = document.getElementById('analysis-result');
-                resultDiv.innerHTML = `
-                    <div class="bg-gray-50 rounded-lg p-4">
-                        <h3 class="font-semibold text-gray-900 mb-2">${result.repo_name}</h3>
-                        <div class="grid grid-cols-2 gap-4 text-sm">
-                            <div>
-                                <span class="text-gray-500">AI-TD Score:</span>
-                                <span class="font-medium ml-2">${result.ai_td_score.toFixed(3)}</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-500">Severity:</span>
-                                <span class="severity-${result.severity.toLowerCase()} font-medium ml-2">${result.severity}</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-500">Files:</span>
-                                <span class="font-medium ml-2">${result.files_analyzed}</span>
-                            </div>
-                            <div>
-                                <span class="text-gray-500">Lines:</span>
-                                <span class="font-medium ml-2">${result.total_lines.toLocaleString()}</span>
-                            </div>
-                        </div>
-                        <div class="mt-2 text-xs text-gray-500">
-                            Analysis completed in ${result.analysis_time}s
-                        </div>
-                    </div>
-                `;
-                resultDiv.classList.remove('hidden');
 
-                // Refresh dashboard data so history and stats update immediately
+                const sev = result.severity || 'LOW';
+                const sevColor = severityColor(sev);
+                const scoreMain = typeof result.ai_td_score === 'number' ? result.ai_td_score : 0;
+                const elapsed = typeof result.analysis_time === 'number' ? result.analysis_time.toFixed(1) : '?';
+
+                resultDiv.innerHTML = `
+                    <div class="bg-white border border-gray-200 rounded-lg p-5 shadow-sm">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <h3 class="font-bold text-gray-900 text-base">${result.repo_name || result.name || repoUrl}</h3>
+                                <span class="text-xs text-gray-400">${result.files_analyzed || 0} files · ${(result.total_lines || 0).toLocaleString()} lines · ${elapsed}s</span>
+                            </div>
+                            <div class="text-center ml-4">
+                                <div class="text-2xl font-bold" style="color:${sevColor}">${scoreMain.toFixed(3)}</div>
+                                <div class="text-xs font-semibold px-2 py-0.5 rounded-full text-white mt-1" style="background:${sevColor}">${sev}</div>
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            ${scoreBar('Complexity', result.complexity_score || 0)}
+                            ${scoreBar('Duplication', result.duplication_score || 0)}
+                            ${scoreBar('Documentation', result.documentation_score || 0)}
+                            ${scoreBar('Error Handling', result.error_handling_score || 0)}
+                        </div>
+                        <div class="mt-3 text-xs text-gray-400 text-right">
+                            Method: ${result.analysis_method || 'github_api_contents'}
+                        </div>
+                    </div>`;
+
+                // Refresh dashboard charts & table
                 refreshData();
-                
+
             } catch (error) {
-                alert('Error analyzing repository: ' + error.message);
+                resultDiv.innerHTML = `
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 text-sm text-red-700">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        Network error: ${error.message}
+                    </div>`;
             } finally {
                 button.disabled = false;
                 button.innerHTML = '<i class="fas fa-search mr-2"></i>Analyze';
