@@ -87,7 +87,7 @@ class RealRepositoryAnalyzer:
             self._cleanup_temp_dir()
             return {
                 'analysis_success': False,
-                'error': f'Analysis failed: {str(e)}'
+                'error': f'Failed to clone repository: {str(e)}. This could be due to: 1) Repository not found or private, 2) Network connectivity issues, 3) GitHub rate limits, 4) Invalid repository URL format. Please check the repository URL and try again.'
             }
     
     def _parse_repo_url(self, repo_url: str) -> Optional[Dict]:
@@ -159,14 +159,33 @@ class RealRepositoryAnalyzer:
             if not repo_info.get('branch') or repo_info['branch'] == 'main':
                 repo_info['branch'] = repo_data.get('default_branch', 'main')
             
-            # Download repository as ZIP
+            # Try ZIP download first (faster)
+            if self._try_zip_download(repo_info):
+                return self._find_extracted_directory()
+            
+            # Fallback to git clone
+            if self._try_git_clone(repo_info):
+                return self._find_extracted_directory()
+            
+            print("Both ZIP download and git clone failed")
+            return None
+            
+        except Exception as e:
+            print(f"Error cloning repository: {e}")
+            self._cleanup_temp_dir()
+            return None
+    
+    def _try_zip_download(self, repo_info: Dict) -> bool:
+        """Try to download repository as ZIP."""
+        try:
             zip_url = f"https://github.com/{repo_info['owner']}/{repo_info['repo']}/archive/{repo_info['branch']}.zip"
-            print(f"Downloading: {zip_url}")
+            print(f"Downloading ZIP: {zip_url}")
+            
             zip_response = requests.get(zip_url, timeout=30)
             
             if zip_response.status_code != 200:
-                print(f"Failed to download ZIP: {zip_response.status_code}")
-                return None
+                print(f"ZIP download failed: {zip_response.status_code}")
+                return False
             
             # Save and extract ZIP
             zip_path = os.path.join(self.temp_dir, 'repo.zip')
@@ -177,24 +196,54 @@ class RealRepositoryAnalyzer:
             with zipfile.ZipFile(zip_path, 'r') as zip_ref:
                 zip_ref.extractall(self.temp_dir)
             
-            # Find extracted repository directory
-            extracted_dir = None
+            print("ZIP download successful")
+            return True
+            
+        except Exception as e:
+            print(f"ZIP download error: {e}")
+            return False
+    
+    def _try_git_clone(self, repo_info: Dict) -> bool:
+        """Try to clone repository using git."""
+        try:
+            import subprocess
+            
+            git_url = f"https://github.com/{repo_info['owner']}/{repo_info['repo']}.git"
+            clone_dir = os.path.join(self.temp_dir, 'repo')
+            
+            print(f"Git cloning: {git_url}")
+            
+            # Try git clone
+            result = subprocess.run([
+                'git', 'clone', '--depth', '1', '--branch', repo_info['branch'], 
+                git_url, clone_dir
+            ], capture_output=True, text=True, timeout=60)
+            
+            if result.returncode == 0:
+                print("Git clone successful")
+                return True
+            else:
+                print(f"Git clone failed: {result.stderr}")
+                return False
+                
+        except Exception as e:
+            print(f"Git clone error: {e}")
+            return False
+    
+    def _find_extracted_directory(self) -> Optional[str]:
+        """Find the extracted repository directory."""
+        try:
+            # Look for extracted directory
             for item in os.listdir(self.temp_dir):
                 item_path = os.path.join(self.temp_dir, item)
                 if os.path.isdir(item_path) and item != '__MACOSX':
-                    extracted_dir = item_path
-                    break
+                    return item_path
             
-            if not extracted_dir:
-                print("No extracted directory found")
-                return None
-            
-            print(f"Repository extracted to: {extracted_dir}")
-            return extracted_dir
+            print("No extracted directory found")
+            return None
             
         except Exception as e:
-            print(f"Error cloning repository: {e}")
-            self._cleanup_temp_dir()
+            print(f"Error finding extracted directory: {e}")
             return None
     
     def _analyze_repository_path(self, repo_path: str, repo_info: Dict) -> Dict:
