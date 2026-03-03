@@ -46,6 +46,8 @@ class RealRepositoryAnalyzer:
             'rust': ['.rs'],
             'ruby': ['.rb'],
             'php': ['.php'],
+            'html': ['.html', '.htm'],  # Added HTML support
+            'css': ['.css'],           # Added CSS support
         }
     
     def analyze_repo_url(self, repo_url: str) -> Dict:
