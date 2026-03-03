@@ -119,6 +119,15 @@ def load_dataset(dataset_path: str = "data/merged_real_dataset.csv") -> bool:
             else:
                 df["ai_confidence"] = "None"
 
+        # Ensure history-related columns exist for all rows
+        if "source" not in df.columns:
+            # Mark existing rows as coming from the static dataset
+            df["source"] = "static"
+        if "analysis_method" not in df.columns:
+            df["analysis_method"] = "dataset"
+        if "created_at" not in df.columns:
+            df["created_at"] = ""
+
         # Fill missing values
         df = df.fillna(
             {
@@ -217,6 +226,12 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/history')
+def history_page():
+    """History page showing repositories analyzed via Quick Analysis."""
+    return render_template('history.html')
+
+
 @app.route('/api/stats')
 def get_stats():
     """Get dataset statistics."""
@@ -313,6 +328,137 @@ def get_repositories():
         'page': page,
         'per_page': per_page,
         'pages': (len(df) + per_page - 1) // per_page
+    })
+
+
+@app.route('/api/history')
+def get_history():
+    """Get history of repositories analyzed via Quick Analysis."""
+    global current_dataset
+
+    if current_dataset is None:
+        load_dataset()
+        if current_dataset is None:
+            return jsonify({'error': 'No dataset loaded'})
+
+    # Get query parameters
+    page = int(request.args.get('page', 1))
+    per_page = int(request.args.get('per_page', 20))
+    severity_filter = request.args.get('severity', '').upper()
+    query = request.args.get('q', '').strip()
+
+    df = current_dataset.copy()
+
+    # Keep only rows that came from Quick Analysis (runtime analysis)
+    if 'source' in df.columns:
+        df = df[df['source'] == 'quick_analysis']
+    elif 'analysis_method' in df.columns:
+        df = df[df['analysis_method'] != 'dataset']
+
+    # Optional severity filter
+    if severity_filter in ('LOW', 'MEDIUM', 'HIGH'):
+        if 'severity' in df.columns:
+            df = df[df['severity'].str.upper() == severity_filter]
+
+    # Optional text search (name/url)
+    if query:
+        q = query.lower()
+        name_series = df['name'].astype(str).str.lower() if 'name' in df.columns else ''
+        url_series = df['url'].astype(str).str.lower() if 'url' in df.columns else ''
+        mask = name_series.str.contains(q, na=False) | url_series.str.contains(q, na=False)
+        df = df[mask]
+
+    # Sort newest first if we have timestamps
+    if 'created_at' in df.columns:
+        df = df.sort_values('created_at', ascending=False)
+
+    # Paginate
+    total = len(df)
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_df = df.iloc[start:end]
+
+    history_items = []
+    for _, row in paginated_df.iterrows():
+        def safe_float(value, default=0.0):
+            try:
+                if pd.isna(value):
+                    return default
+                return float(value)
+            except Exception:
+                return default
+
+        history_items.append({
+            'name': row.get('name', '') or '',
+            'url': row.get('url', '') or '',
+            'language': row.get('language', '') or '',
+            'ai_td_score': safe_float(row.get('ai_td_score', 0.0)),
+            'complexity_score': safe_float(row.get('complexity_score', 0.0)),
+            'duplication_score': safe_float(row.get('duplication_score', 0.0)),
+            'documentation_score': safe_float(row.get('documentation_score', 0.0)),
+            'error_handling_score': safe_float(row.get('error_handling_score', 0.0)),
+            'severity': row.get('severity', 'LOW') or 'LOW',
+            'analysis_method': row.get('analysis_method', '') or '',
+            'created_at': row.get('created_at', '') or '',
+            'files_analyzed': int(row.get('files_analyzed', 0) or 0),
+            'total_lines': int(row.get('total_lines', 0) or 0),
+        })
+
+    return jsonify({
+        'history': history_items,
+        'total': total,
+        'page': page,
+        'per_page': per_page,
+        'pages': (total + per_page - 1) // per_page,
+    })
+
+
+@app.route('/api/history/export')
+def export_history():
+    """Export Quick Analysis history as CSV."""
+    global current_dataset
+
+    if current_dataset is None:
+        load_dataset()
+        if current_dataset is None:
+            return jsonify({'error': 'No dataset loaded'})
+
+    df = current_dataset.copy()
+
+    # Keep only Quick Analysis entries
+    if 'source' in df.columns:
+        df = df[df['source'] == 'quick_analysis']
+    elif 'analysis_method' in df.columns:
+        df = df[df['analysis_method'] != 'dataset']
+
+    if df.empty:
+        return jsonify({'error': 'No history entries to export'})
+
+    # Select and order relevant columns for CSV export
+    columns = [
+        'name',
+        'url',
+        'language',
+        'ai_td_score',
+        'complexity_score',
+        'duplication_score',
+        'documentation_score',
+        'error_handling_score',
+        'severity',
+        'files_analyzed',
+        'total_lines',
+        'analysis_method',
+        'created_at',
+    ]
+
+    existing_cols = [c for c in columns if c in df.columns]
+    export_df = df[existing_cols]
+
+    csv_data = export_df.to_csv(index=False)
+
+    return jsonify({
+        'csv_data': csv_data,
+        'filename': f'ai_td_history_{datetime.now().strftime("%Y%m%d_%H%M%S")}.csv',
     })
 
 
@@ -522,23 +668,26 @@ def analyze_repository():
 
             # Build a row compatible with the main dataset schema
             new_row = {
-                'name': result['repo_name'],
-                'url': result['repo_url'],
-                'language': analysis.get('language', ''),
-                'ai_td_score': result['ai_td_score'],
-                'complexity_score': result['complexity_score'],
-                'duplication_score': result['duplication_score'],
-                'documentation_score': result['documentation_score'],
-                'error_handling_score': result['error_handling_score'],
-                'stars': analysis.get('stars', 0),
-                'forks': analysis.get('forks', 0),
+                "name": result["repo_name"],
+                "url": result["repo_url"],
+                "language": analysis.get("language", ""),
+                "ai_td_score": result["ai_td_score"],
+                "complexity_score": result["complexity_score"],
+                "duplication_score": result["duplication_score"],
+                "documentation_score": result["documentation_score"],
+                "error_handling_score": result["error_handling_score"],
+                "stars": analysis.get("stars", 0),
+                "forks": analysis.get("forks", 0),
                 # Treat analyzed repo as AI-assisted so it appears in AI stats
-                'ai_confidence': analysis.get('ai_confidence', 'High'),
-                'severity': result['severity'],
-                'files_analyzed': result['files_analyzed'],
-                'total_lines': result['total_lines'],
-                # Optional helper fields
-                'type': analysis.get('type', 'AI'),
+                "ai_confidence": analysis.get("ai_confidence", "High"),
+                "severity": result["severity"],
+                "files_analyzed": result["files_analyzed"],
+                "total_lines": result["total_lines"],
+                # History / origin metadata
+                "type": analysis.get("type", "AI"),
+                "analysis_method": analysis.get("analysis_method", "quick_analysis"),
+                "source": "quick_analysis",
+                "created_at": datetime.utcnow().isoformat(timespec="seconds"),
             }
 
             # Append to dataset

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-TD Detector - History</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <i class="fas fa-robot text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold text-gray-900">AI-TD Detector Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-sm font-medium text-gray-600 hover:text-blue-600">
+                        <i class="fas fa-chart-line mr-1"></i>Main Dashboard
+                    </a>
+                    <span class="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-xs font-semibold">
+                        <i class="fas fa-history mr-1"></i>History
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="mb-6 flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-3 lg:space-y-0">
+            <div>
+                <h2 class="text-xl font-semibold text-gray-900">Analysis History</h2>
+                <p class="text-sm text-gray-500">Repositories analyzed via Quick Analysis are listed here.</p>
+            </div>
+            <div class="flex items-center space-x-3">
+                <button
+                    onclick="exportHistory()"
+                    class="hidden md:inline-flex items-center bg-green-600 text-white px-3 py-2 rounded-lg text-xs font-medium hover:bg-green-700 transition"
+                >
+                    <i class="fas fa-download mr-1"></i>Export History
+                </button>
+                <input
+                    id="search-query"
+                    type="text"
+                    placeholder="Search by repository or URL"
+                    class="px-3 py-2 border border-gray-300 rounded-lg text-sm w-64"
+                    onkeydown="if (event.key === 'Enter') loadHistory(1)"
+                >
+                <select id="severity-filter" class="px-3 py-2 border border-gray-300 rounded-lg text-sm" onchange="loadHistory(1)">
+                    <option value="">All Severities</option>
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-900">Quick Analysis History</h3>
+                    <div class="text-sm text-gray-500">
+                        <span id="history-total">0</span> entries
+                    </div>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Repository</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI-TD Score</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Complexity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Duplication</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Documentation</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Error Handling</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Language</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Files</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lines</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Method</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Analyzed At</th>
+                        </tr>
+                    </thead>
+                    <tbody id="history-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- History rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-700">
+                        Showing <span id="history-showing-start">0</span>-<span id="history-showing-end">0</span> of <span id="history-total-bottom">0</span> results
+                    </div>
+                    <div class="flex space-x-2">
+                    <button onclick="previousPage()" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm">Previous</button>
+                    <button onclick="nextPage()" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50 text-sm">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Details Modal -->
+    <div id="history-modal" class="fixed inset-0 bg-black/40 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl max-w-3xl w-full mx-4">
+            <div class="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <div>
+                    <h3 id="modal-title" class="text-lg font-semibold text-gray-900"></h3>
+                    <p id="modal-subtitle" class="text-xs text-gray-500"></p>
+                </div>
+                <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="px-6 py-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-800 mb-2">AI-TD Dimensions</h4>
+                    <div id="history-radar" class="w-full h-64"></div>
+                </div>
+                <div>
+                    <h4 class="text-sm font-semibold text-gray-800 mb-2">Summary</h4>
+                    <dl class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                        <div>
+                            <dt class="text-gray-500">AI-TD Score</dt>
+                            <dd id="modal-ai-td" class="font-medium text-gray-900"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-500">Severity</dt>
+                            <dd id="modal-severity" class="font-medium"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-500">Language</dt>
+                            <dd id="modal-language" class="font-medium text-gray-900"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-500">Files / Lines</dt>
+                            <dd id="modal-files-lines" class="font-medium text-gray-900"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-500">Method</dt>
+                            <dd id="modal-method" class="font-medium text-gray-900"></dd>
+                        </div>
+                        <div>
+                            <dt class="text-gray-500">Analyzed At</dt>
+                            <dd id="modal-created-at" class="font-medium text-gray-900"></dd>
+                        </div>
+                    </dl>
+                    <div class="mt-4">
+                        <a id="modal-link" href="#" target="_blank" class="inline-flex items-center text-sm text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-external-link-alt mr-1"></i>
+                            Open in GitHub
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <div class="px-6 py-3 border-t border-gray-200 flex justify-end">
+                <button onclick="closeModal()" class="px-4 py-2 text-sm font-medium text-gray-700 hover:text-gray-900">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentHistoryItems = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHistory(1);
+        });
+
+        async function loadHistory(page) {
+            currentPage = page;
+            const severity = document.getElementById('severity-filter').value;
+
+            try {
+                const q = document.getElementById('search-query').value || '';
+                const response = await fetch(`/api/history?page=${currentPage}&severity=${encodeURIComponent(severity)}&q=${encodeURIComponent(q)}`);
+                const data = await response.json();
+
+                if (data.error) {
+                    console.error('Error loading history:', data.error);
+                    return;
+                }
+
+                const tbody = document.getElementById('history-table-body');
+                tbody.innerHTML = '';
+                currentHistoryItems = data.history || [];
+
+                currentHistoryItems.forEach(item => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50 cursor-pointer';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex flex-col">
+                                <a href="${item.url}" target="_blank" class="text-sm font-medium text-blue-600 hover:text-blue-800">
+                                    ${item.name}
+                                </a>
+                                <span class="text-xs text-gray-500">${item.url}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${item.ai_td_score.toFixed(3)}</div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="bg-red-600 h-2 rounded-full" style="width: ${item.ai_td_score * 100}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="text-sm font-semibold ${
+                                item.severity === 'HIGH'
+                                    ? 'text-red-600'
+                                    : item.severity === 'MEDIUM'
+                                    ? 'text-yellow-500'
+                                    : 'text-green-600'
+                            }">
+                                ${item.severity}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.complexity_score.toFixed(3)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.duplication_score.toFixed(3)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.documentation_score.toFixed(3)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.error_handling_score.toFixed(3)}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.language || 'Unknown'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.files_analyzed}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${item.total_lines}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">${item.analysis_method || 'n/a'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-500">${item.created_at || '-'}</td>
+                    `;
+                    row.addEventListener('click', () => openDetails(item));
+                    tbody.appendChild(row);
+                });
+
+                totalPages = data.pages;
+
+                const start = data.total === 0 ? 0 : ((data.page - 1) * data.per_page) + 1;
+                const end = Math.min(data.page * data.per_page, data.total);
+
+                document.getElementById('history-total').textContent = data.total;
+                document.getElementById('history-total-bottom').textContent = data.total;
+                document.getElementById('history-showing-start').textContent = start;
+                document.getElementById('history-showing-end').textContent = end;
+            } catch (error) {
+                console.error('Error loading history:', error);
+            }
+        }
+
+        function previousPage() {
+            if (currentPage > 1) {
+                loadHistory(currentPage - 1);
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                loadHistory(currentPage + 1);
+            }
+        }
+
+        async function exportHistory() {
+            try {
+                const response = await fetch('/api/history/export');
+                const data = await response.json();
+
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+
+                const blob = new Blob([data.csv_data], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = data.filename || 'ai_td_history.csv';
+                a.click();
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                alert('Error exporting history: ' + error.message);
+            }
+        }
+
+        function openDetails(item) {
+            const modal = document.getElementById('history-modal');
+            document.getElementById('modal-title').textContent = item.name || 'Unknown repository';
+            document.getElementById('modal-subtitle').textContent = item.url || '';
+
+            document.getElementById('modal-ai-td').textContent = item.ai_td_score.toFixed(3);
+
+            const severityEl = document.getElementById('modal-severity');
+            severityEl.textContent = item.severity;
+            severityEl.className = 'font-medium ' + (
+                item.severity === 'HIGH'
+                    ? 'text-red-600'
+                    : item.severity === 'MEDIUM'
+                    ? 'text-yellow-500'
+                    : 'text-green-600'
+            );
+
+            document.getElementById('modal-language').textContent = item.language || 'Unknown';
+            document.getElementById('modal-files-lines').textContent =
+                `${item.files_analyzed} files / ${item.total_lines.toLocaleString()} lines`;
+
+            document.getElementById('modal-method').textContent = item.analysis_method || 'n/a';
+            document.getElementById('modal-created-at').textContent = item.created_at || '-';
+
+            const linkEl = document.getElementById('modal-link');
+            linkEl.href = item.url || '#';
+            linkEl.classList.toggle('pointer-events-none', !item.url);
+            linkEl.classList.toggle('opacity-50', !item.url);
+
+            const dimensions = ['Complexity', 'Duplication', 'Documentation', 'Error Handling'];
+            const values = [
+                item.complexity_score || 0,
+                item.duplication_score || 0,
+                item.documentation_score || 0,
+                item.error_handling_score || 0,
+            ];
+
+            const radarElement = document.getElementById('history-radar');
+            Plotly.newPlot(
+                radarElement,
+                [{
+                    type: 'scatterpolar',
+                    r: [...values, values[0]],
+                    theta: [...dimensions, dimensions[0]],
+                    fill: 'toself',
+                    fillcolor: 'rgba(37, 99, 235, 0.2)',
+                    line: { color: 'rgba(37, 99, 235, 1)' },
+                    name: 'Scores',
+                }],
+                {
+                    polar: {
+                        radialaxis: {
+                            visible: true,
+                            range: [0, 1],
+                        },
+                    },
+                    margin: { t: 10, r: 10, b: 10, l: 10 },
+                    showlegend: false,
+                },
+                { displayModeBar: false }
+            );
+
+            modal.classList.remove('hidden');
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('history-modal');
+            modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
+
