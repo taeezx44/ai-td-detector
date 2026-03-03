@@ -379,9 +379,12 @@ test_extension.py  🟡 AI-TD: 0.45 [MEDIUM]
 - **Demo Results**: AI code shows measurable technical debt differences
 - **Research Workflow**: Complete 7-phase automation pipeline
 - **GitHub Repository**: Full source code published and installable
-
-### 📈 Key Findings
-- **RQ1**: AI-generated code shows higher technical debt (AI: 0.51 vs Human: 0.35)
+- **Web Dashboard**: Interactive Flask dashboard with Plotly visualizations
+- **Dataset**: 40+ repositories (AI-assisted vs human-written control group)
+- **Statistical Analysis**: Wilcoxon Signed-Rank Test + Effect size calculation
+- **Demo Results**: AI code shows measurable technical debt differences
+- **Research Workflow**: Complete 7-phase automation pipeline
+- **GitHub Repository**: Full source code published and installableated code shows higher technical debt (AI: 0.51 vs Human: 0.35)
 - **RQ2**: Documentation (0.40 vs 0.22) and Error Handling (0.46 vs 0.19) are most distinguishing
 - **Statistical Significance**: P-value = 0.125 (trend toward significance, needs larger sample)
 - **Effect Size**: Large effect observed but requires larger dataset for validation
