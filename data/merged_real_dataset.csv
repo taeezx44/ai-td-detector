@@ -1,0 +1,13 @@
+name,url,language,ai_td_score,complexity_score,duplication_score,documentation_score,error_handling_score,stars,forks,type
+Sample AI Repo 1,https://github.com/sample/ai1,python,0.67,0.45,0.23,0.67,0.34,150,23,AI
+Sample AI Repo 2,https://github.com/sample/ai2,javascript,0.54,0.38,0.18,0.72,0.28,89,12,AI
+Sample Human Repo 1,https://github.com/sample/human1,python,0.35,0.25,0.12,0.45,0.19,234,45,Human
+Sample Human Repo 2,https://github.com/sample/human2,javascript,0.28,0.20,0.08,0.38,0.15,167,28,Human
+Microsoft VS Code,https://github.com/microsoft/vscode,typescript,0.42,0.35,0.15,0.58,0.25,145000,28500,Human
+TensorFlow,https://github.com/tensorflow/tensorflow,python,0.48,0.52,0.22,0.61,0.31,185000,74200,Human
+React,https://github.com/facebook/react,javascript,0.39,0.33,0.14,0.55,0.23,220000,45000,Human
+Vue.js,https://github.com/vuejs/vue,javascript,0.36,0.28,0.12,0.48,0.21,207000,34000,Human
+Angular,https://github.com/angular/angular,typescript,0.44,0.38,0.18,0.59,0.27,94000,25200,Human
+Django,https://github.com/django/django,python,0.41,0.34,0.16,0.56,0.24,78000,32000,Human
+Flask,https://github.com/pallets/flask,python,0.35,0.29,0.13,0.51,0.22,67000,29000,Human
+FastAPI,https://github.com/tiangolo/fastapi,python,0.38,0.32,0.15,0.54,0.25,76000,31000,Human

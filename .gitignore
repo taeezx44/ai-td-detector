@@ -99,10 +99,10 @@ vscode-extension/out/
 # AI-TD Detector specific
 statistical_results.json
 data/*.csv
-data/*.json
 scripts/data/*.csv
 !data/RESEARCH_REPORT.md
 !data/sample_research_dataset.csv
 !data/merged_dataset.csv
 !data/statistical_results.json
 !data/.gitkeep
+!data/merged_real_dataset.csv
