@@ -51,107 +51,167 @@ class RealRepositoryAnalyzer:
         }
     
     def analyze_repo_url(self, repo_url: str) -> Dict:
-        """Analyze a GitHub repository by URL.
+        """Analyze a GitHub repository by URL using GitHub Contents API.
 
-        This method is designed to be robust in constrained environments (e.g. Render):
-        - It always creates a temporary working directory.
-        - It first attempts a ZIP download, then git clone.
-        - If code analysis is impossible, it falls back to a lightweight GitHub API–based estimate.
+        Uses GitHub REST API to fetch file contents directly — no git clone or
+        ZIP download needed. Works reliably on Render free tier.
         """
         start_time = time.time()
 
         try:
-            # Parse repository URL
             repo_info = self._parse_repo_url(repo_url)
             if not repo_info:
                 return {
                     'analysis_success': False,
-                    'error': f'Invalid GitHub URL format: {repo_url}. Expected format: https://github.com/owner/repo'
+                    'error': f'Invalid GitHub URL: {repo_url}. Expected: https://github.com/owner/repo'
                 }
 
-            # Ensure we have a temporary directory for any downloads
-            if not self.temp_dir:
-                self.temp_dir = tempfile.mkdtemp(prefix='ai_td_analysis_')
+            owner = repo_info['owner']
+            repo  = repo_info['repo']
 
-            # Try ZIP download first (faster)
-            if self._try_zip_download(repo_info):
-                extracted_dir = self._find_extracted_directory()
-                if extracted_dir:
-                    result = self._analyze_repository_path(extracted_dir, repo_info)
-                    result.setdefault('analysis_time', time.time() - start_time)
-                    return result
+            headers = {
+                'User-Agent': 'AI-TD-Detector/1.0.0',
+                'Accept': 'application/vnd.github.v3+json',
+            }
+            # Use token if available (raises rate limit from 60 → 5000/hr)
+            token = os.environ.get('GITHUB_TOKEN', '')
+            if token:
+                headers['Authorization'] = f'token {token}'
 
-            # Fallback to git clone
-            if self._try_git_clone(repo_info):
-                extracted_dir = self._find_extracted_directory()
-                if extracted_dir:
-                    result = self._analyze_repository_path(extracted_dir, repo_info)
-                    result.setdefault('analysis_time', time.time() - start_time)
-                    return result
+            # ── 1. Fetch repo metadata ──────────────────────────────────────
+            meta_resp = requests.get(
+                f'https://api.github.com/repos/{owner}/{repo}',
+                headers=headers, timeout=10
+            )
+            if meta_resp.status_code == 404:
+                return {'analysis_success': False, 'error': f'Repository {owner}/{repo} not found or is private.'}
+            if meta_resp.status_code == 403:
+                return {'analysis_success': False, 'error': 'GitHub API rate limit exceeded. Please try again later.'}
+            if meta_resp.status_code != 200:
+                return {'analysis_success': False, 'error': f'GitHub API error {meta_resp.status_code}.'}
 
-            # Final fallback to GitHub API (no code analysis, but provides basic info)
-            if self._try_github_api_fallback(repo_info):
-                if hasattr(self, 'minimal_result') and self.minimal_result:
-                    self.minimal_result.setdefault('analysis_time', time.time() - start_time)
-                    return self.minimal_result
+            meta = meta_resp.json()
+            default_branch = meta.get('default_branch', 'main')
+            stars  = meta.get('stargazers_count', 0)
+            forks  = meta.get('forks_count', 0)
+            primary_lang = (meta.get('language') or 'unknown').lower()
 
-            # Special fallback for ai-td-detector repository
-            if repo_info['owner'] == 'taeezx44' and repo_info['repo'] == 'ai-td-detector':
-                print("Using hardcoded fallback for ai-td-detector repository")
+            # ── 2. Fetch full file tree (recursive) ─────────────────────────
+            tree_resp = requests.get(
+                f'https://api.github.com/repos/{owner}/{repo}/git/trees/{default_branch}?recursive=1',
+                headers=headers, timeout=15
+            )
+            if tree_resp.status_code != 200:
+                return {'analysis_success': False, 'error': f'Could not fetch file tree (status {tree_resp.status_code}).'}
+
+            tree_data = tree_resp.json()
+            if tree_data.get('truncated'):
+                print('Warning: file tree truncated (large repo) — analysing first 200 files only')
+
+            # ── 3. Filter to supported source files (skip tests/vendor/node_modules) ──
+            SKIP_DIRS = {
+                'node_modules', 'venv', 'env', '__pycache__', '.git',
+                'build', 'dist', 'target', 'vendor', '.github',
+            }
+            SUPPORTED_EXTS = {
+                '.py': 'python', '.js': 'javascript',
+                '.ts': 'typescript', '.tsx': 'typescript',
+            }
+            MAX_FILES = 40   # Analyse up to 40 files per repo to stay fast
+            MAX_FILE_BYTES = 100_000  # Skip very large files
+
+            candidate_files = []
+            for item in tree_data.get('tree', []):
+                if item.get('type') != 'blob':
+                    continue
+                path = item.get('path', '')
+                parts = path.split('/')
+                # Skip hidden / vendor directories
+                if any(p.startswith('.') or p in SKIP_DIRS for p in parts[:-1]):
+                    continue
+                ext = Path(path).suffix.lower()
+                if ext in SUPPORTED_EXTS:
+                    candidate_files.append({
+                        'path': path,
+                        'language': SUPPORTED_EXTS[ext],
+                        'size': item.get('size', 0),
+                        'sha': item.get('sha', ''),
+                    })
+
+            if not candidate_files:
                 return {
-                    'analysis_success': True,
-                    'name': 'taeezx44/ai-td-detector',
-                    'url': 'https://github.com/taeezx44/ai-td-detector',
-                    'language': 'python',
-                    'ai_td_score': 0.35,  # Moderate score for our own project
-                    'complexity_score': 0.42,
-                    'duplication_score': 0.18,
-                    'documentation_score': 0.67,  # Good documentation
-                    'error_handling_score': 0.38,
-                    'stars': 0,  # New repository
-                    'forks': 0,
-                    'files_analyzed': 0,
-                    'total_lines': 0,
-                    'severity': 'MEDIUM',
-                    'analysis_method': 'hardcoded_fallback',
-                    'analysis_time': time.time() - start_time,
+                    'analysis_success': False,
+                    'error': 'No supported source files found (Python/JS/TS). Repository may use an unsupported language.'
                 }
 
-            # Special fallback for SmartFileOrganizer repository
-            if repo_info['owner'] == 'taeezx44' and repo_info['repo'] == 'SmartFileOrganizer':
-                print("Using hardcoded fallback for SmartFileOrganizer repository")
+            # Prioritise smaller files so we can analyse more diversity quickly
+            candidate_files.sort(key=lambda f: f['size'])
+            selected_files = candidate_files[:MAX_FILES]
+
+            # ── 4. Fetch & analyse each file ────────────────────────────────
+            all_scores: List[Dict] = []
+            total_lines = 0
+            files_analyzed = 0
+
+            for file_info in selected_files:
+                if file_info['size'] > MAX_FILE_BYTES:
+                    continue
+                try:
+                    content_resp = requests.get(
+                        f"https://api.github.com/repos/{owner}/{repo}/contents/{file_info['path']}",
+                        headers=headers, timeout=10
+                    )
+                    if content_resp.status_code != 200:
+                        continue
+
+                    content_data = content_resp.json()
+                    import base64
+                    raw = base64.b64decode(content_data.get('content', '')).decode('utf-8', errors='ignore')
+
+                    if not raw.strip():
+                        continue
+
+                    analysis = self.detector.analyze_code(raw, file_info['language'])
+                    if analysis:
+                        analysis['file_size'] = len(raw)
+                        all_scores.append(analysis)
+                        total_lines += len(raw.splitlines())
+                        files_analyzed += 1
+
+                except Exception as e:
+                    print(f"Error fetching/analysing {file_info['path']}: {e}")
+                    continue
+
+            if not all_scores:
                 return {
-                    'analysis_success': True,
-                    'name': 'taeezx44/SmartFileOrganizer',
-                    'url': 'https://github.com/taeezx44/SmartFileOrganizer',
-                    'language': 'html',
-                    'ai_td_score': 0.28,  # Lower score for simple HTML project
-                    'complexity_score': 0.32,
-                    'duplication_score': 0.15,
-                    'documentation_score': 0.45,  # Moderate documentation
-                    'error_handling_score': 0.22,  # Limited error handling in HTML
-                    'stars': 0,  # New repository
-                    'forks': 0,
-                    'files_analyzed': 0,
-                    'total_lines': 0,
-                    'severity': 'MEDIUM',
-                    'analysis_method': 'hardcoded_fallback',
-                    'analysis_time': time.time() - start_time,
+                    'analysis_success': False,
+                    'error': 'Files were found but none could be analysed. They may be empty or use unsupported syntax.'
                 }
 
-            # All methods failed
+            # ── 5. Aggregate & return ───────────────────────────────────────
+            aggregated = self._aggregate_scores(all_scores)
+            severity   = self._determine_severity(aggregated['ai_td_score'])
+
             return {
-                'analysis_success': False,
-                'error': f'Failed to analyze repository {repo_info["owner"]}/{repo_info["repo"]}. All analysis methods failed. This could be due to: 1) Repository not found or private, 2) Network connectivity issues, 3) GitHub API rate limits, 4) Server restrictions on cloning. Please try again later or check if the repository is accessible.'
+                'analysis_success': True,
+                'name': f'{owner}/{repo}',
+                'url': f'https://github.com/{owner}/{repo}',
+                'language': primary_lang,
+                'stars': stars,
+                'forks': forks,
+                'files_analyzed': files_analyzed,
+                'total_lines': total_lines,
+                'severity': severity,
+                'analysis_method': 'github_api_contents',
+                'analysis_time': time.time() - start_time,
+                **aggregated,
             }
 
         except Exception as e:
             return {
                 'analysis_success': False,
-                'error': f'Failed to analyze repository: {str(e)}. This could be due to: 1) Repository not found or private, 2) Network connectivity issues, 3) GitHub rate limits, 4) Invalid repository URL format. Please check the repository URL and try again.'
+                'error': f'Unexpected error: {str(e)}'
             }
-        finally:
-            self._cleanup_temp_dir()
     
     def _parse_repo_url(self, repo_url: str) -> Optional[Dict]:
         """Parse GitHub repository URL."""
