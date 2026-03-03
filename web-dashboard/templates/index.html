@@ -414,6 +414,9 @@
                     </div>
                 `;
                 resultDiv.classList.remove('hidden');
+
+                // Refresh dashboard data so history and stats update immediately
+                refreshData();
                 
             } catch (error) {
                 alert('Error analyzing repository: ' + error.message);
