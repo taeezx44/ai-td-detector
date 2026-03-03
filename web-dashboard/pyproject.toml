@@ -1,0 +1,19 @@
+[project]
+name = "ai-td-dashboard"
+version = "0.1.0"
+dependencies = [
+    "setuptools==68.2.2",
+    "flask==2.3.3",
+    "flask-cors==4.0.0",
+    "pandas==2.0.3",
+    "plotly==5.17.0",
+    "requests==2.31.0",
+    "python-dateutil==2.8.2"
+]
+
+[tool.uv]
+required-version = ">=0.1.0"
+no-build-isolation-package = ["pandas"]
+
+[tool.uv.extra-build-dependencies]
+pandas = ["setuptools", "versioneer"]

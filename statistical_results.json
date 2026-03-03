@@ -1,0 +1,113 @@
+{
+  "rq1_results": {
+    "test": "Wilcoxon Signed-Rank Test",
+    "n_ai": 1,
+    "n_human": 4,
+    "ai_mean": 0.5097945015216396,
+    "human_mean": 0.3540332514151094,
+    "ai_median": 0.5097945015216396,
+    "human_median": 0.35761779481469447,
+    "ai_std": 0.0,
+    "human_std": 0.08448338594627355,
+    "statistic": 0.0,
+    "p_value": 0.125,
+    "p_value_bonferroni": 0.375,
+    "significant_bonferroni": false,
+    "significant": false,
+    "effect_size": NaN,
+    "effect_size_interpretation": "large",
+    "power_analysis": {
+      "power": 0.0,
+      "adequate": false,
+      "note": "Sample size too small"
+    }
+  },
+  "rq2_results": {
+    "complexity_test": {
+      "test": "Mann-Whitney U",
+      "n_ai": 1,
+      "n_human": 4,
+      "ai_mean": 0.18923036526277243,
+      "human_mean": 0.20462212383644252,
+      "statistic": 0.0,
+      "p_value": 0.4,
+      "p_value_bonferroni": 1.6,
+      "significant_bonferroni": false,
+      "effect_size": NaN,
+      "effect_size_interpretation": "large"
+    },
+    "duplication_test": {
+      "test": "Mann-Whitney U",
+      "n_ai": 1,
+      "n_human": 4,
+      "ai_mean": 0.29602876383633664,
+      "human_mean": 0.24091337310609748,
+      "statistic": 3.0,
+      "p_value": 0.8,
+      "p_value_bonferroni": 3.2,
+      "significant_bonferroni": false,
+      "effect_size": NaN,
+      "effect_size_interpretation": "large"
+    },
+    "documentation_test": {
+      "test": "Mann-Whitney U",
+      "n_ai": 1,
+      "n_human": 4,
+      "ai_mean": 0.40126135927941403,
+      "human_mean": 0.2233320730749136,
+      "statistic": 4.0,
+      "p_value": 0.4,
+      "p_value_bonferroni": 1.6,
+      "significant_bonferroni": false,
+      "effect_size": NaN,
+      "effect_size_interpretation": "large"
+    },
+    "error_handling_test": {
+      "test": "Mann-Whitney U",
+      "n_ai": 1,
+      "n_human": 4,
+      "ai_mean": 0.45689920533598155,
+      "human_mean": 0.1907508670302283,
+      "statistic": 4.0,
+      "p_value": 0.4,
+      "p_value_bonferroni": 1.6,
+      "significant_bonferroni": false,
+      "effect_size": NaN,
+      "effect_size_interpretation": "large"
+    },
+    "feature_importance": {
+      "error": "Insufficient data for feature importance analysis"
+    },
+    "ablation_study": {
+      "note": "Conceptual ablation study - would remove each dimension and recompute AI-TD scores",
+      "expected_impact": {
+        "complexity": "High impact - primary driver of technical debt",
+        "duplication": "Medium impact - significant for AI-generated code",
+        "documentation": "Medium impact - AI tends to lack documentation",
+        "error_handling": "High impact - AI often omits error handling"
+      }
+    }
+  },
+  "descriptive_stats": {
+    "AI": {
+      "total_repos": 1,
+      "avg_stars": 0.0,
+      "avg_forks": 0.0,
+      "avg_size_kb": 0.0,
+      "language_distribution": {},
+      "ai_confidence_distribution": {
+        "Medium": 1
+      }
+    },
+    "Human": {
+      "total_repos": 4,
+      "avg_stars": 0.0,
+      "avg_forks": 0.0,
+      "avg_size_kb": 0.0,
+      "language_distribution": {},
+      "ai_confidence_distribution": {
+        "Low": 4
+      }
+    }
+  }
+}

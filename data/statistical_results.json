@@ -1,0 +1,80 @@
+{
+  "rq1_results": {
+    "error": "No AI-TD scores available for comparison"
+  },
+  "rq2_results": {
+    "feature_importance": {
+      "feature_importance": {
+        "stars": 0.0,
+        "forks": 0.0,
+        "size_kb": 0.0,
+        "ai_confidence_high": 0.0,
+        "ai_confidence_medium": 0.0,
+        "ai_confidence_low": 0.0
+      },
+      "cv_accuracy_mean": 1.0,
+      "cv_accuracy_std": 0.0,
+      "top_features": [
+        [
+          "stars",
+          0.0
+        ],
+        [
+          "forks",
+          0.0
+        ],
+        [
+          "size_kb",
+          0.0
+        ],
+        [
+          "ai_confidence_high",
+          0.0
+        ],
+        [
+          "ai_confidence_medium",
+          0.0
+        ],
+        [
+          "ai_confidence_low",
+          0.0
+        ]
+      ]
+    },
+    "ablation_study": {
+      "note": "Conceptual ablation study - would remove each dimension and recompute AI-TD scores",
+      "expected_impact": {
+        "complexity": "High impact - primary driver of technical debt",
+        "duplication": "Medium impact - significant for AI-generated code",
+        "documentation": "Medium impact - AI tends to lack documentation",
+        "error_handling": "High impact - AI often omits error handling"
+      }
+    }
+  },
+  "descriptive_stats": {
+    "AI": {
+      "total_repos": 20,
+      "avg_stars": 564.15,
+      "avg_forks": 171.4,
+      "avg_size_kb": 30651.6,
+      "language_distribution": {
+        "JavaScript": 7,
+        "Python": 6,
+        "Jupyter Notebook": 5,
+        "TypeScript": 2
+      },
+      "ai_confidence_distribution": {
+        "Medium": 13,
+        "High": 7
+      }
+    },
+    "Human": {
+      "total_repos": 0,
+      "avg_stars": NaN,
+      "avg_forks": NaN,
+      "avg_size_kb": NaN,
+      "language_distribution": {},
+      "ai_confidence_distribution": {}
+    }
+  }
+}

@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-TD Detector Dashboard</title>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .chart-container {
+            height: 400px;
+            width: 100%;
+        }
+        .stat-card {
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-2px);
+        }
+        .repo-row:hover {
+            background-color: #f9fafb;
+        }
+        .severity-low { color: #10b981; }
+        .severity-medium { color: #f59e0b; }
+        .severity-high { color: #ef4444; }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow-sm border-b">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center">
+                    <i class="fas fa-robot text-blue-600 text-2xl mr-3"></i>
+                    <h1 class="text-2xl font-bold text-gray-900">AI-TD Detector Dashboard</h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <button onclick="exportData()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition">
+                        <i class="fas fa-download mr-2"></i>Export Data
+                    </button>
+                    <button onclick="refreshData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="stat-card bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-blue-100 rounded-lg p-3">
+                        <i class="fas fa-database text-blue-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-gray-500">Total Repositories</h3>
+                        <p class="text-2xl font-bold text-gray-900" id="total-repos">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-red-100 rounded-lg p-3">
+                        <i class="fas fa-robot text-red-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-gray-500">AI Repositories</h3>
+                        <p class="text-2xl font-bold text-gray-900" id="ai-repos">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-green-100 rounded-lg p-3">
+                        <i class="fas fa-user text-green-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-gray-500">Human Repositories</h3>
+                        <p class="text-2xl font-bold text-gray-900" id="human-repos">-</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="stat-card bg-white rounded-lg shadow p-6">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 bg-purple-100 rounded-lg p-3">
+                        <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-sm font-medium text-gray-500">Effect Size</h3>
+                        <p class="text-2xl font-bold text-gray-900" id="effect-size">-</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Score Comparison -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Average AI-TD Scores</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-red-600" id="avg-ai-score">-</div>
+                        <div class="text-sm text-gray-500">AI Repositories</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="text-3xl font-bold text-blue-600" id="avg-human-score">-</div>
+                        <div class="text-sm text-gray-500">Human Repositories</div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Quick Analysis</h2>
+                <div class="flex space-x-4">
+                    <input type="text" id="repo-url" placeholder="Enter GitHub repository URL" 
+                           class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <button onclick="analyzeRepository()" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition">
+                        <i class="fas fa-search mr-2"></i>Analyze
+                    </button>
+                </div>
+                <div id="analysis-result" class="mt-4 hidden"></div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">AI-TD Score Distribution</h2>
+                <div id="score-distribution-chart" class="chart-container"></div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Dimensions Comparison</h2>
+                <div id="dimension-comparison-chart" class="chart-container"></div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Language Distribution</h2>
+                <div id="language-distribution-chart" class="chart-container"></div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow p-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Severity Distribution</h2>
+                <div id="severity-distribution-chart" class="chart-container"></div>
+            </div>
+        </div>
+
+        <!-- Repository Table -->
+        <div class="bg-white rounded-lg shadow">
+            <div class="px-6 py-4 border-b border-gray-200">
+                <div class="flex justify-between items-center">
+                    <h2 class="text-lg font-semibold text-gray-900">Repository Analysis Results</h2>
+                    <div class="flex space-x-4">
+                        <select id="filter-type" onchange="loadRepositories()" class="px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="all">All Repositories</option>
+                            <option value="ai">AI Repositories</option>
+                            <option value="human">Human Repositories</option>
+                        </select>
+                        <select id="language-filter" onchange="loadRepositories()" class="px-3 py-2 border border-gray-300 rounded-lg">
+                            <option value="">All Languages</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Repository</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Language</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AI-TD Score</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Severity</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Files</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Lines</th>
+                        </tr>
+                    </thead>
+                    <tbody id="repository-table-body" class="bg-white divide-y divide-gray-200">
+                        <!-- Repository rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-200">
+                <div class="flex justify-between items-center">
+                    <div class="text-sm text-gray-700">
+                        Showing <span id="showing-start">0</span>-<span id="showing-end">0</span> of <span id="total-results">0</span> results
+                    </div>
+                    <div class="flex space-x-2">
+                        <button onclick="previousPage()" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Previous</button>
+                        <button onclick="nextPage()" class="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50">Next</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Global variables
+        let currentPage = 1;
+        let totalPages = 1;
+        let currentStats = null;
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            loadStats();
+            loadCharts();
+            loadRepositories();
+        });
+
+        // Load statistics
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/stats');
+                const stats = await response.json();
+                currentStats = stats;
+                
+                // Update stat cards
+                document.getElementById('total-repos').textContent = stats.total_repos || 0;
+                document.getElementById('ai-repos').textContent = stats.ai_repos || 0;
+                document.getElementById('human-repos').textContent = stats.human_repos || 0;
+                document.getElementById('effect-size').textContent = (stats.effect_size || 0).toFixed(3);
+                document.getElementById('avg-ai-score').textContent = (stats.avg_ai_score || 0).toFixed(3);
+                document.getElementById('avg-human-score').textContent = (stats.avg_human_score || 0).toFixed(3);
+                
+                // Update language filter
+                const languageSelect = document.getElementById('language-filter');
+                languageSelect.innerHTML = '<option value="">All Languages</option>';
+                Object.keys(stats.languages || {}).forEach(lang => {
+                    if (lang) {
+                        const option = document.createElement('option');
+                        option.value = lang;
+                        option.textContent = `${lang} (${stats.languages[lang]})`;
+                        languageSelect.appendChild(option);
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+        // Load charts
+        async function loadCharts() {
+            try {
+                // Score distribution
+                const scoreResponse = await fetch('/api/charts/score-distribution');
+                const scoreData = await scoreResponse.json();
+                Plotly.newPlot('score-distribution-chart', JSON.parse(scoreData).data, JSON.parse(scoreData).layout);
+                
+                // Dimension comparison
+                const dimensionResponse = await fetch('/api/charts/dimension-comparison');
+                const dimensionData = await dimensionResponse.json();
+                Plotly.newPlot('dimension-comparison-chart', JSON.parse(dimensionData).data, JSON.parse(dimensionData).layout);
+                
+                // Language distribution
+                const languageResponse = await fetch('/api/charts/language-distribution');
+                const languageData = await languageResponse.json();
+                Plotly.newPlot('language-distribution-chart', JSON.parse(languageData).data, JSON.parse(languageData).layout);
+                
+                // Severity distribution
+                const severityResponse = await fetch('/api/charts/severity-distribution');
+                const severityData = await severityResponse.json();
+                Plotly.newPlot('severity-distribution-chart', JSON.parse(severityData).data, JSON.parse(severityData).layout);
+                
+            } catch (error) {
+                console.error('Error loading charts:', error);
+            }
+        }
+
+        // Load repositories
+        async function loadRepositories() {
+            try {
+                const filterType = document.getElementById('filter-type').value;
+                const languageFilter = document.getElementById('language-filter').value;
+                
+                const response = await fetch(`/api/repositories?page=${currentPage}&filter_type=${filterType}&language=${languageFilter}`);
+                const data = await response.json();
+                
+                // Update table
+                const tbody = document.getElementById('repository-table-body');
+                tbody.innerHTML = '';
+                
+                data.repositories.forEach(repo => {
+                    const row = document.createElement('tr');
+                    row.className = 'repo-row';
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="flex items-center">
+                                <div>
+                                    <div class="text-sm font-medium text-gray-900">
+                                        <a href="${repo.url}" target="_blank" class="text-blue-600 hover:text-blue-800">
+                                            ${repo.name}
+                                        </a>
+                                    </div>
+                                    <div class="text-sm text-gray-500">
+                                        <i class="fas fa-star text-yellow-400"></i> ${repo.stars} 
+                                        <i class="fas fa-code-branch text-gray-400 ml-2"></i> ${repo.forks || 0}
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${repo.language || 'Unknown'}</td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="px-2 py-1 text-xs font-medium rounded-full ${
+                                repo.ai_confidence === 'None' ? 'bg-blue-100 text-blue-800' : 'bg-red-100 text-red-800'
+                            }">
+                                ${repo.ai_confidence === 'None' ? 'Human' : 'AI'}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <div class="text-sm font-medium text-gray-900">${repo.ai_td_score.toFixed(3)}</div>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-1">
+                                <div class="bg-red-600 h-2 rounded-full" style="width: ${repo.ai_td_score * 100}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap">
+                            <span class="severity-${repo.severity.toLowerCase()} font-medium">
+                                ${repo.severity}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${repo.files_analyzed || 0}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">${repo.total_lines || 0}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                // Update pagination
+                totalPages = data.pages;
+                document.getElementById('showing-start').textContent = ((data.page - 1) * data.per_page) + 1;
+                document.getElementById('showing-end').textContent = Math.min(data.page * data.per_page, data.total);
+                document.getElementById('total-results').textContent = data.total;
+                
+            } catch (error) {
+                console.error('Error loading repositories:', error);
+            }
+        }
+
+        // Pagination
+        function previousPage() {
+            if (currentPage > 1) {
+                currentPage--;
+                loadRepositories();
+            }
+        }
+
+        function nextPage() {
+            if (currentPage < totalPages) {
+                currentPage++;
+                loadRepositories();
+            }
+        }
+
+        // Analyze repository
+        async function analyzeRepository() {
+            const repoUrl = document.getElementById('repo-url').value.trim();
+            if (!repoUrl) {
+                alert('Please enter a repository URL');
+                return;
+            }
+            
+            const button = event.target;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Analyzing...';
+            
+            try {
+                const response = await fetch('/api/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ repo_url: repoUrl })
+                });
+                
+                const result = await response.json();
+                
+                if (result.error) {
+                    alert(result.error);
+                    return;
+                }
+                
+                // Display results
+                const resultDiv = document.getElementById('analysis-result');
+                resultDiv.innerHTML = `
+                    <div class="bg-gray-50 rounded-lg p-4">
+                        <h3 class="font-semibold text-gray-900 mb-2">${result.repo_name}</h3>
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div>
+                                <span class="text-gray-500">AI-TD Score:</span>
+                                <span class="font-medium ml-2">${result.ai_td_score.toFixed(3)}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Severity:</span>
+                                <span class="severity-${result.severity.toLowerCase()} font-medium ml-2">${result.severity}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Files:</span>
+                                <span class="font-medium ml-2">${result.files_analyzed}</span>
+                            </div>
+                            <div>
+                                <span class="text-gray-500">Lines:</span>
+                                <span class="font-medium ml-2">${result.total_lines.toLocaleString()}</span>
+                            </div>
+                        </div>
+                        <div class="mt-2 text-xs text-gray-500">
+                            Analysis completed in ${result.analysis_time}s
+                        </div>
+                    </div>
+                `;
+                resultDiv.classList.remove('hidden');
+                
+            } catch (error) {
+                alert('Error analyzing repository: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-search mr-2"></i>Analyze';
+            }
+        }
+
+        // Export data
+        async function exportData() {
+            try {
+                const response = await fetch('/api/export');
+                const data = await response.json();
+                
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                
+                // Create download link
+                const blob = new Blob([data.csv_data], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = data.filename;
+                a.click();
+                window.URL.revokeObjectURL(url);
+                
+            } catch (error) {
+                alert('Error exporting data: ' + error.message);
+            }
+        }
+
+        // Refresh data
+        function refreshData() {
+            loadStats();
+            loadCharts();
+            loadRepositories();
+        }
+    </script>
+</body>
+</html>

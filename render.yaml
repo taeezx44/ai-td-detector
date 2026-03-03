@@ -1,0 +1,18 @@
+services:
+  # Web Dashboard Service
+  - type: web
+    name: ai-td-detector
+    env: python
+    plan: free
+    buildCommand: "cd web-dashboard && pip install -r requirements.txt"
+    startCommand: "cd web-dashboard && python app.py"
+    healthCheckPath: /
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: PYTHON_VERSION
+        value: 3.9.0
+
+  # Auto-deploy configuration
+    autoDeploy: true
+    branch: master

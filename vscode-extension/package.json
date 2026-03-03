@@ -1,0 +1,139 @@
+{
+  "name": "ai-td-detector",
+  "displayName": "AI-TD Detector",
+  "description": "ตรวจจับ Technical Debt จาก AI-generated code — Complexity · Duplication · Documentation · Error Handling",
+  "version": "1.0.0",
+  "publisher": "korawit-chuluen",
+  "engines": { "vscode": "^1.85.0" },
+  "categories": ["Linters", "Other"],
+  "keywords": ["ai", "technical debt", "copilot", "code quality", "static analysis"],
+  "activationEvents": [
+    "onLanguage:python",
+    "onLanguage:javascript",
+    "onLanguage:typescript"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "aitd.analyzeFile",
+        "title": "AI-TD: Analyze Current File",
+        "icon": "$(search)"
+      },
+      {
+        "command": "aitd.analyzeWorkspace",
+        "title": "AI-TD: Analyze Entire Workspace",
+        "icon": "$(folder-opened)"
+      },
+      {
+        "command": "aitd.showPanel",
+        "title": "AI-TD: Show Dashboard",
+        "icon": "$(graph)"
+      },
+      {
+        "command": "aitd.clearDecorations",
+        "title": "AI-TD: Clear Annotations",
+        "icon": "$(clear-all)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "aitd.analyzeFile",
+          "when": "resourceLangId == python || resourceLangId == javascript || resourceLangId == typescript",
+          "group": "navigation"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "aitd.analyzeFile",
+          "when": "resourceLangId == python || resourceLangId == javascript || resourceLangId == typescript",
+          "group": "aitd"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "aitd.analyzeWorkspace",
+          "group": "aitd"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "AI-TD Detector",
+      "properties": {
+        "aitd.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Path to Python interpreter (ต้องติดตั้ง tree-sitter ไว้แล้ว)"
+        },
+        "aitd.enginePath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to AI-TD project root (ที่มีโฟลเดอร์ engine/) — ว่างไว้ = auto-detect"
+        },
+        "aitd.autoAnalyzeOnSave": {
+          "type": "boolean",
+          "default": true,
+          "description": "วิเคราะห์ไฟล์อัตโนมัติเมื่อกด Save"
+        },
+        "aitd.showInlineAnnotations": {
+          "type": "boolean",
+          "default": true,
+          "description": "แสดง annotation inline ในตัวแก้ไข"
+        },
+        "aitd.severityThreshold": {
+          "type": "string",
+          "enum": ["low", "medium", "high"],
+          "default": "medium",
+          "description": "ระดับ severity ขั้นต่ำที่จะแสดง annotation"
+        },
+        "aitd.weights.complexity": {
+          "type": "number",
+          "default": 0.30,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "น้ำหนัก Complexity (C)"
+        },
+        "aitd.weights.duplication": {
+          "type": "number",
+          "default": 0.25,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "น้ำหนัก Duplication (D)"
+        },
+        "aitd.weights.documentation": {
+          "type": "number",
+          "default": 0.20,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "น้ำหนัก Documentation (Doc)"
+        },
+        "aitd.weights.errorHandling": {
+          "type": "number",
+          "default": 0.25,
+          "minimum": 0,
+          "maximum": 1,
+          "description": "น้ำหนัก Error Handling (E)"
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run package",
+    "compile": "webpack",
+    "watch": "webpack --watch",
+    "package": "webpack --mode production --devtool hidden-source-map",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.85.0",
+    "@types/node": "^18.x",
+    "@typescript-eslint/eslint-plugin": "^6.x",
+    "@typescript-eslint/parser": "^6.x",
+    "eslint": "^8.x",
+    "ts-loader": "^9.x",
+    "typescript": "^5.x",
+    "webpack": "^5.x",
+    "webpack-cli": "^5.x"
+  }
+}

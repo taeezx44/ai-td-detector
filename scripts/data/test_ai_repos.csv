@@ -1,0 +1,397 @@
+ai_commit_date,ai_commit_message,ai_commit_sha,ai_confidence,ai_marker_count,ai_signals,collected_at,created_at,default_branch,description,forks,is_private,language,name,search_query,size_kb,stars,updated_at,url
+2026-02-25T17:38:51.000+01:00,"Improved job detail page, scheduler task monitoring (#36)
+
+* Improved job detail page, scheduler task monitoring
+
+* Fixed empty state
+
+* Various pipeline fixes (#37)
+
+* Various pipeline fixes
+
+- Added sockets support for jupyter (singularity and apptainer)
+- Fixed AF2 unpack to save space
+- Fixed proteinsol behavior in Pandas 3.0
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Review comments
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update ovo/core/utils/formatting.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update ovo/core/scheduler/nextflow_scheduler.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update ovo/core/scheduler/nextflow_scheduler.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Update ovo/core/scheduler/nextflow_scheduler.py
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",48b54c6de64241ac9a70630320f7d06b4fda5c68,Low,0,[],2026-02-28T23:21:21.001264,,main,"OVO, an open-source ecosystem for de novo protein design",0,False,,MSDLLCpapers/ovo,,0,0,,https://github.com/MSDLLCpapers/ovo
+2026-02-25T20:01:36.000Z,"Add NuGet packaging and CI (#146)
+
+* Add NuGet packaging and CI
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Add macios-devtools copilot guidance
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Fix CI artifacts and line endings
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Fix UnitTests path detection
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Address PR feedback wording
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Update .github/workflows/ci.yml
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Use bash for version step
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Remove duplicate CI prepare step
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Update README macios link
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Normalize README line endings
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Move build helpers under eng
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Normalize csproj line endings
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Add Azure Pipelines CI
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",79ee35efcaaac509e766c43f086b725bc8e3bbaa,Low,0,[],2026-02-28T23:21:21.033093,,main,Support libraries for xamarin-macios,0,False,,dotnet/macios-devtools,,0,0,,https://github.com/dotnet/macios-devtools
+2026-02-14T06:03:17.000-07:00,Delete integrations/copilot/integrations/copilot/integrations/copilot/integrations/copilot/README.md,af7a45017fdf98c77ad48636034890386262d3ba,Low,0,[],2026-02-28T23:21:21.033121,,main,"Data center intelligence MCP server — 20,000+ facilities, M&A tracking, site selection, power grid data",0,False,,azmartone67/dchub-mcp-server,,0,0,,https://github.com/azmartone67/dchub-mcp-server
+2026-02-21T23:21:14.000-05:00,"feat: keep extract open on warnings (#2)
+
+* feat: keep extract open on warnings
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* chore: encourage educated guesses
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* feat: field-level extraction warnings
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* feat: keep vehicle step open on warning
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* feat: highlight invalid fields on submit
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* feat: resolve warnings on user edits
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* feat: inline validation message
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* fix: override vehicle after extract
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* fix: keep vehicle warning when LLM selected
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* fix: synthesize vehicle warnings
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* refactor: split service record steps
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* refactor: split fuel entry steps
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* feat(settings): share encrypted config
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* fix(vercel): SPA routes
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* fix(vercel): use rewrites for SPA
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* refactor(settings): share/import modals
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* refactor(settings): clarify share warning
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* chore(settings): tweak share warning copy
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* refactor(settings): simplify import modal
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* refactor(settings): show passcode text
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Add light mode + theme setting
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Exclude theme from shared settings
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Keep primary button color in light mode
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Stream LLM THINK updates during service extract
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Allow THINK lines in Gemini stream
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Use Anthropic extended thinking stream
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Use Gemini thought summaries stream
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Fix Anthropic thinking token budget
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Show latest LLM thought in extract
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Bump Anthropic thinking budget
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Hide extract status when streaming
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Show one-line thought headline
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Refine extract card layout
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Make extract retry icon-only
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Icon-only retry + service start over confirm
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Use modal for service start over confirm
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Hide fueling retry until LLM response
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Make modals opaque + inline extra fields remove
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Hide date in fuel details header
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* Regenerate PWA icons from blue source
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",8fdce8c49860e7fdc48428d2ed07642b2e6c174a,Low,0,[],2026-02-28T23:21:21.033420,,main,,0,False,,kareem613/quickfuelup,,0,0,,https://github.com/kareem613/quickfuelup
+2026-02-24T09:11:19.000-08:00,"docs: add copilot-instructions.md (#1)
+
+* docs: add copilot-instructions.md with branching and commit guidelines
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* docs: clarify feature branch guidance
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+* docs: fix typo in branching guidance
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",64317b3765b96e65780c37ed90f062912490d358,Low,0,[],2026-02-28T23:21:21.033461,,main,,0,False,,BretStateham/todoer,,0,0,,https://github.com/BretStateham/todoer
+2026-02-23T12:08:24.000-06:00,"Support mini ePaper S3 Kit (#9335)
+
+* initial draft
+
+* update DC pin
+
+* add ADC channel
+
+* fix e-ink display
+
+* update GxEPD2 reference
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",99e88bb499fd7d3bc0e566eaae06516ffdc5a699,Low,0,[],2026-02-28T23:21:21.033502,,main,"The official firmware for Meshtastic, an open-source, off-grid mesh communication system.",0,False,,meshtastic/firmware,,0,0,,https://github.com/meshtastic/firmware
+2026-02-23T06:54:57.000+04:00,"Merge pull request #4 from maagd90/copilot/set-up-copilot-instructions
+
+Add .github/copilot-instructions.md for Copilot coding agent",fbaccf11c9ca8fd085b8730ec0c838020a7b95ef,Low,0,[],2026-02-28T23:21:21.033517,,main,,0,False,,maagd90/api-automation-framework-playwright,,0,0,,https://github.com/maagd90/api-automation-framework-playwright
+2026-02-06T13:39:04.000-06:00,"Update docs (#37)
+
+* Update docs
+
+* Update docs
+
+* Lint
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+* Apply suggestion from @Copilot
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>
+
+---------
+
+Co-authored-by: Copilot <175728472+Copilot@users.noreply.github.com>",5ac12f3d91100f5780d031ea0b34ebac2a56c692,Low,0,[],2026-02-28T23:21:21.033568,,main,"Stellar Ledger Data Indexer indexes ledger data by transaction_hash, contract_id, etc",0,False,,stellar/stellar-ledger-data-indexer,,0,0,,https://github.com/stellar/stellar-ledger-data-indexer
+2026-02-28T12:58:42.000Z,"feat: add CopilotSessionLauncher and wire copilot sessionLauncher option
+
+- Add CopilotSessionLauncher in agents/copilot/ (mirrors GeminiSessionLauncher)
+- Extend sessionLauncher config enum to include 'copilot'
+- Wire CopilotSessionLauncher in createAgentLayer when sessionLauncher='copilot'
+- Update bishop's config.json to use copilot for session and code dispatch
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>",afe211c0c23298068b86908f07d43542826bf713,Low,0,[],2026-02-28T23:21:21.033604,,main,,0,False,,rookdaemon/substrate,,0,0,,https://github.com/rookdaemon/substrate
+2026-02-25T22:38:03.000Z,"[PLA-12868]: Add Copilot tools integration with useChat on client side (#2259)
+
+* feat(copilot-commands): add copilot command insert html, and unifiied interface for command and tool definitions
+
+* chore(copilot-commands): CommandMeta.name renamed to toolName
+
+* chore(copilot-commands): moved copilot commands to internal directory
+
+* feat(copilot-tools): add client tool call exeuction in Copilot Chat
+
+* chore(copilot-commands): rebase with origin copilot backend PR
+
+* chore(copilot-commands): move CopilotToolCallResult to host-frame-api
+
+* refactor(copilot-commands): add CopilotToolCallError type
+
+* refactor(copilot-commands): added comments
+
+* chore(copilot-commands): check if context is available for copilot tool
+
+* chore(copilot-commands): rename findCommandByToolName to findCommandByName
+
+GitOrigin-RevId: d1cc94de37dc405a9282d1901090caf03dd9248c",bb40b67a28615b077092cf9584e8471cfd2dfb59,Low,0,[],2026-02-28T23:22:53.000589,,main,"Visual builder for React. Build apps, websites, and content. Integrate with your codebase.",0,False,,plasmicapp/plasmic,,0,0,,https://github.com/plasmicapp/plasmic
